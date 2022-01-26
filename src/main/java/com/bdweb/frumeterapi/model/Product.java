@@ -1,5 +1,6 @@
 package com.bdweb.frumeterapi.model;
 
+import com.bdweb.frumeterapi.model.dto.ProductDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,4 +31,14 @@ public class Product {
 
     private String category;
 
+    private String urlImage;
+
+    public Product(ProductDTO productDTO){
+        this.name = productDTO.getName();
+        this.description = productDTO.getDescription();
+        this.quantityStock = productDTO.getQuantityStock();
+        this.price = productDTO.getPrice();
+        this.category = productDTO.getCategory();
+        this.urlImage = productDTO.getUrlImage();
+    }
 }
