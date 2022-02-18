@@ -1,0 +1,60 @@
+name: Deploy to Amazon EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to repo
+        uses: actions/checkout@v1
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifact
+          path: target/frumeter-api-0.0.1-SNAPSHOT.jar
+
+  deploy:
+    needs: build
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v1
+
+      - uses: actions/download-artifact@main
+        with:
+          name: artifact
+          path: target/
+
+      - name: Deploy to AWS
+        run: |
+          rm -f aux_temp.pem
+          echo "${{ secrets.SSH_KEY }}" >> aux_temp.pem
+          chmod 400 aux_temp.pem
+          ssh -o stricthostkeychecking=no -i aux_temp.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo systemctl stop frumeter-api.service'
+          scp -o stricthostkeychecking=no -i aux_temp.pem -v ./target/frumeter-api-0.0.1-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ubuntu/frumeter-api/target
+          ssh -o stricthostkeychecking=no -i aux_temp.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'chmod 777 /home/ubuntu/frumeter-api/target/frumeter-api-0.0.1-SNAPSHOT.jar'
+          ssh -o stricthostkeychecking=no -i aux_temp.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo systemctl restart frumeter-api.service'
