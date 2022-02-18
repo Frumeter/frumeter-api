@@ -25,16 +25,14 @@ public class Buy {
 
     private Double discount;
 
+    private PaymentType paymentType;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "buy", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BuyProductQuantity> buyProductQuantities;
-
-    @OneToOne
-    @JoinColumn(name = "payment_method_id", nullable = false)
-    private PaymentMethod paymentMethod;
 
     @OneToOne
     @JoinColumn(name = "address_id", nullable = false)

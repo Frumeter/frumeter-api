@@ -26,6 +26,6 @@ public class BuyProductQuantity {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "buy_id", nullable = false)
+    @JoinColumn(name = "buy_id")
     private Buy buy;
 }
