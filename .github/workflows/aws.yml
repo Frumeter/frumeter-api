@@ -18,14 +18,20 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '11'
-
+          
+      - name: Use secretes
+        run: |
+          sed -i "s/spring.datasource.username.*/spring.datasource.username=${{ secrets.BD_USERNAME }}/" src/main/resources/application-prod.properties
+          sed -i "s/spring.datasource.password.*/spring.datasource.password=${{ secrets.BD_PASSWORD }}/" src/main/resources/application-prod.properties
+          sed -i "s/jwt.token.secret.*/jwt.token.secret=${{ secrets.JWT_SECRET_KEY }}/" src/main/resources/application.properties
+        
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-
+          
       - name: Build with Maven
         run: mvn -B package -DskipTests --file pom.xml
 
